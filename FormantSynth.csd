@@ -1,51 +1,77 @@
 <Cabbage>
-form caption("Formant Synth"), size(630, 550), colour(129, 129, 129), pluginId("talk")
+form caption("Formant Synth"), size(765, 650), guiMode("queue"), colour(129, 129, 129), pluginId("talk")
 
-plant("LoopMode") {
-    label bounds(60, 10, 520, 20), text("Formant Synthesizer"), fontColour(255, 255, 255, 255), font("default", 16)
+combobox bounds(500, 10, 210, 25), channel("presetComboBox"), items("Default")
+button bounds(500, 45, 100, 25), channel("saveNewPresetButton"), text("Save as New Preset")
+button bounds(610, 45, 100, 25), channel("deletePresetButton"), text("Delete Preset")
+
+label bounds(10, 10, 200, 20), text("Formant Synthesizer"), fontColour(255, 255, 255, 255), font("default", 16)
+
+button bounds(540, 335, 150, 25), channel("toggleEnvelope"), text("Envelope: OFF"), latched(1)
+
+button bounds(90, 80, 90, 50), channel("toggleInstrument"), text("Loop: OFF"), latched(1)  ; x-axis size decreased to 90 and y-axis increased to 30; moved up by 5
+rslider bounds(180, 70, 60, 60), channel("tune"), range(-24, 24, 0), text("Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 10 and up by 5
+rslider bounds(240, 70, 60, 60), channel("fineTune"), range(-12, 12, 0, 0.01), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 15 and up by 5
+
+plant("NoiseAmount") {
+    groupbox bounds(315, 90, 220, 40), text("Noise Amount"), colour(200, 200, 200)
+    hslider bounds(325, 110, 200, 20), channel("noiseAmountSlider"), range(0, 1, 0.5), text("Breathiness") trackerColour(0, 0, 255, 255)
 }
 
-button bounds(60, 35, 130, 25), channel("toggleInstrument"), identChannel("instrIdent"), text("Loop: OFF"), latched(1)
-button bounds(192, 35, 130, 25), channel("toggleEnvelope"), identChannel("envIdent"), text("Envelope: OFF"), latched(1)
+
+plant("WaveformDisplay") {
+    groupbox bounds(90, 135, 220, 220), text("Waveform Display"), colour(200, 200, 200)  ; increased height slightly to accommodate combobox
+    signaldisplay bounds(100, 185, 200, 160), colour("green") displayType("waveform"), backgroundColour(0, 0, 0), zoom(-1), signalVariable("displaySignal"), channel("display")
+    combobox bounds(100, 160, 200, 20), channel("displayCombo"), items("Waveform", "Spectroscope", "Spectrogram", "Lissajous")
+}
+
+plant("XYPad") {
+    groupbox bounds(315, 135, 220, 190), text("XYPad"), colour(200, 200, 200)
+    xypad bounds(325, 155, 200, 160), channel("xCoordinate", "yCoordinate")
+}
 
 plant("Formants") {
-    groupbox bounds(60, 65, 520, 90), text("Formants"), colour(200, 200, 200)
-    hslider bounds(65, 85, 510, 20), channel("kFreq1"), range(0.001, 1000, 300, 1, 0.001), text("Formant 1 Frequency") trackerColour(0, 67, 210, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 110, 510, 20), channel("kFreq2"), range(0.001, 1000, 870, 1, 0.001), text("Formant 2 Frequency") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 135, 510, 20), channel("kFreq3"), range(0.001, 2500, 2250, 1, 0.001), text("Formant 3 Frequency") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
+    groupbox bounds(90, 365, 220, 190), text("Formants"), colour(200, 200, 200)
+    vslider bounds(126, 390, 25, 150), channel("kFreq1"), range(0.001, 1000, 300, 1, 0.001), text("F1") trackerColour(0, 67, 210, 255) textColour(255, 255, 255, 255)
+    vslider bounds(187, 390, 25, 150), channel("kFreq2"), range(0.001, 1000, 870, 1, 0.001), text("F2") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
+    vslider bounds(248, 390, 25, 150), channel("kFreq3"), range(0.001, 2500, 2250, 1, 0.001), text("F3") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
 }
 
 plant("Bandwidth") {
-    groupbox bounds(60, 160, 520, 90), text("Bandwidth"), colour(200, 200, 200)
-    hslider bounds(65, 180, 510, 20), channel("kBW1"), range(0.001, 500, 60, 1, 0.001), text("Bandwidth 1") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 205, 510, 20), channel("kBW2"), range(0.001, 500, 90, 1, 0.001), text("Bandwidth 2") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 230, 510, 20), channel("kBW3"), range(0.001, 500, 200, 1, 0.001), text("Bandwidth 3") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
+    groupbox bounds(315, 335, 220, 190), text("Bandwidth"), colour(200, 200, 200)
+    hslider bounds(325, 355, 210, 25), channel("kBW1"), range(0.001, 500, 60), text("BW1") trackerColour(0, 0, 255, 255)
+    hslider bounds(325, 385, 210, 25), channel("kBW2"), range(0.001, 500, 90), text("BW2") trackerColour(0, 0, 255, 255)
+    hslider bounds(325, 415, 210, 25), channel("kBW3"), range(0.001, 500, 200), text("BW3") trackerColour(0, 0, 255, 255)
 }
 
 plant("ADSR") {
-    groupbox bounds(60, 255, 520, 115), text("ADSR"), colour(200, 200, 200)
-    hslider bounds(65, 275, 510, 20), channel("att"), range(0.001, 1, 0.01, 10, 0.01), text("Attack") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 300, 510, 20), channel("dec"), range(0.001, 1, 0.5, 1, 0.01), text("Decay") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 325, 510, 20), channel("sus"), range(0.001, 1, 0.5, 1, 0.01), text("Sustain") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
-    hslider bounds(65, 350, 510, 20), channel("rel"), range(0.001, 1, 0.7, 10, 0.01), text("Release") trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
+    groupbox bounds(540, 135, 220, 190), text("ADSR"), colour(200, 200, 200)
+    hslider bounds(550, 155, 200, 25), channel("envAttack"), range(0.3, 1, 0.01), text("Attack") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 185, 200, 25), channel("envDecay"), range(0.3, 1, 0.5), text("Decay") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 215, 200, 25), channel("envSustain"), range(0.3, 1, 0.5), text("Sustain") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 245, 200, 25), channel("envRelease"), range(0.001, 1, 0.7), text("Release") trackerColour(0, 0, 255, 255)
 }
 
-plant("KeyboardMode") {
-    keyboard bounds(60, 375, 520, 80))
+plant("FilterADSR") {
+    groupbox bounds(540, 365, 220, 190), text("Filter ADSR"), colour(200, 200, 200)
+    hslider bounds(550, 385, 200, 25), channel("filtAttack"), range(0.001, 1, 0.01), text("Attack") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 415, 200, 25), channel("filtDecay"), range(0.001, 1, 0.5), text("Decay") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 445, 200, 25), channel("filtSustain"), range(0.001, 1, 0.5), text("Sustain") trackerColour(0, 0, 255, 255)
+    hslider bounds(550, 475, 200, 25), channel("filtRelease"), range(0.001, 1, 0.7), text("Release") trackerColour(0, 0, 255, 255)
 }
 
-vslider bounds(-45, 50, 150, 470), channel("masterVolume"), range(0, 1, 0.5, 1, 0.01), trackerColour(0, 0, 255, 255) textColour(255, 255, 255, 255)
+plant("Master") {
+    groupbox bounds(5, 85, 80, 400), text("Master"), colour(200, 200, 200)
+    vslider bounds(20, 105, 50, 375), channel("masterVolume"), range(0, 1, 0.5), text("Vol.") trackerColour(0, 0, 255, 255)
+}
 
-button bounds(330, 460, 260, 25), channel("savePreset"), text("Save as New Preset")
-
-combobox bounds(60, 490, 260, 25), channel("presetCombo"), items("Default")
-button bounds(330, 490, 260, 25), channel("deletePreset"), text("Delete Selected Preset")
+keyboard bounds(5, 565, 710, 80)
 
 </Cabbage>
 
 <CsoundSynthesizer>
 <CsOptions>
--n -d -m0d -+rtmidi=NULL -M0 --midi-key-cps=4 --midi-velocity-amp=5
+-n --displays -d -m0d -+rtmidi=NULL -M0 --midi-key-cps=4 --midi-velocity-amp=5
 </CsOptions>
 <CsInstruments>
 
@@ -60,10 +86,10 @@ instr UpdateGUI
 
     if kTrigInstrument == 1 then
         if kToggleInstrument == 1 then
-            chnset "text(\"Loop: ON\")", "instrIdent"
+            cabbageSet "toggleInstrument", "text", "Drone: ON"
             event "i", "LoopSound", 0, -1 ; Start the LoopSound
         else
-            chnset "text(\"Loop: OFF\")", "instrIdent"
+            cabbageSet "toggleInstrument", "text", "Drone: OFF"
             turnoff2 "LoopSound", 0, 0.01 ; Stop the LoopSound with a short fade-out time
         endif
     endif
@@ -73,22 +99,40 @@ instr UpdateGUI
 
     if kTrigEnvelope == 1 then
         if kToggleEnvelope == 1 then
-            chnset "text(\"Envelope: ON\")", "envIdent"
+            cabbageSet "toggleEnvelope", "text", "Envelope: ON"
         else
-            chnset "text(\"Envelope: OFF\")", "envIdent"
+            cabbageSet "toggleEnvelope", "text", "Envelope: OFF"
         endif
     endif
 endin
 
+instr UpdateDisplay
+  
+    kDisplayType, kTrig cabbageGetValue "displayCombo"
+    STypes[] init 4
+    STypes[0] = "waveform"
+    STypes[1] = "spectroscope"
+    STypes[2] = "spectrogram"
+    STypes[3] = "lissajous"
+    cabbageSet kTrig, "display", "displayType", STypes[kDisplayType-1]
+    
+endin
 
 
 instr LoopSound
-    aEnv madsr chnget("att"), chnget("dec"), chnget("sus"), chnget("rel")
+    
+    kTune chnget "tune"
+    kFineTune chnget "fineTune"
 
-    aLoopSig vco2 1, 440 
+    aEnv madsr 1, 1, 1, 1
+    
+    kTuneFreq = 440 * cent(pow(2, kTune/12 + kFineTune/100))
+    
+    aLoopSig vco2 1, kTuneFreq 
     aLoopSig *= aEnv
 
     ; Process the signal
+    
     kFreq1 chnget "kFreq1"
     kFreq2 chnget "kFreq2"
     kFreq3 chnget "kFreq3"
@@ -106,7 +150,7 @@ instr LoopSound
     a2 *= 1/peak(a2)  ; normalize the amplitude of a2 to 1
     a3 *= 1/peak(a3)  ; normalize the amplitude of a3 to 1
 
-    aMix = (a1 + a2 + a3) * kVol / 2  ; scale down the combined formants 
+    aMix = (a1 + a2 + a3) * kVol / 3  ; scale down the combined formants 
     aMixL, aMixR pan2 aMix, 0.5  ; Panning center
 
     outs aMixL, aMixR ; Output stereo signal
@@ -131,7 +175,9 @@ instr FormantSynth
     kMidiFreq cpsmidinn p4
     kVel      ampdbfs p5
 
-    kEnv madsr chnget("att"), chnget("dec"), chnget("sus"), chnget("rel")
+    kEnv madsr chnget("envAttack"), chnget("envDecay"), chnget("envSustain"), chnget("envRelease")
+    kFilterEnv madsr chnget("filtAttack"), chnget("filtDecay"), chnget("filtSustain"), chnget("filtRelease")
+
     kFreq1 chnget "kFreq1"
     kFreq2 chnget "kFreq2"
     kFreq3 chnget "kFreq3"
@@ -143,7 +189,7 @@ instr FormantSynth
     kToggleEnv chnget "toggleEnvelope" ; get the state of the toggleEnvelope button
 
     ; Depending on toggleEnvelope, either apply the envelope to the frequency or bypass it
-    kMidiFreq = (kToggleEnv == 1 ? kMidiFreq * kEnv : kMidiFreq)
+    kMidiFreq = (kToggleEnv == 1 ? kMidiFreq * kFilterEnv : kMidiFreq)
     
     ; Generate the MIDI signal
     aMidiSig vco2 kVel, kMidiFreq
@@ -160,8 +206,42 @@ instr FormantSynth
     aMix = (a1 + a2 + a3) * kVol / 3 * kEnv  ; scale down the combined formants 
     aMixL, aMixR pan2 aMix, 0.5  ; panning center
     
+    display aMix, .1, 1
+    dispfft aMix, .1, 1024
+    
     outs aMixL, aMixR
+    
 endin
+
+instr UpdateFormantsFromXY
+
+    kx chnget "xCoordinate" ; range 0 to 1
+    ky chnget "yCoordinate" ; range 0 to 1
+
+    ; Interpolate formant values based on XY positions
+
+    ; Interpolation for X axis (ooo <-> eee)
+    kF1_x = 300 + (270-300)*kx
+    kF2_x = 870 + (2300-870)*kx
+    kF3_x = 2250 + (3000-2250)*kx
+
+    ; Interpolation for Y axis (ooo <-> ahh)
+    kF1_y = 300 + (730-300)*ky
+    kF2_y = 870 + (2090-870)*ky  ; Adjusted range for kF2_y
+    kF3_y = 2250 + (2440-2250)*ky
+
+    ; Final interpolation between the X and Y axis
+    kF1 = kF1_x*(1-ky) + kF1_y*ky
+    kF2 = kF2_x*(1-ky) + kF2_y*ky
+    kF3 = kF3_x*(1-ky) + kF3_y*ky
+
+    ; Set the formant sliders
+    cabbageSetValue "kFreq1", kF1
+    cabbageSetValue "kFreq2", kF2
+    cabbageSetValue "kFreq3", kF3
+
+endin
+
 
 
 </CsInstruments>
@@ -169,6 +249,8 @@ endin
 f0 z
 i"UpdateGUI" 0 z
 i"MIDI_Listener" 0 z
+i"UpdateDisplay" 0 z
+i"UpdateFormantsFromXY" 0 z
 </CsScore>
 
 </CsoundSynthesizer>
