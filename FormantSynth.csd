@@ -10,12 +10,15 @@ label bounds(10, 10, 200, 20), text("Formant Synthesizer"), fontColour(255, 255,
 button bounds(540, 335, 150, 25), channel("toggleEnvelope"), text("Envelope: OFF"), latched(1)
 
 button bounds(90, 80, 90, 50), channel("toggleInstrument"), text("Loop: OFF"), latched(1)  ; x-axis size decreased to 90 and y-axis increased to 30; moved up by 5
-rslider bounds(180, 70, 60, 60), channel("tune"), range(-24, 24, 0), text("Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 10 and up by 5
-rslider bounds(240, 70, 60, 60), channel("fineTune"), range(-12, 12, 0, 0.01), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 15 and up by 5
+rslider bounds(180, 70, 60, 60), channel("tune"), range(-42, 42, 0), text("Tune"), trackerColour(0, 0, 255, 255)
+rslider bounds(240, 70, 60, 60), channel("fineTune"), range(-1, 1, 0), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 15 and up by 5
+rslider bounds(300, 70, 60, 60), channel("lfoFrequency"), range(0.1, 10, 1), text("LFO Frequency"), trackerColour(0, 0, 255, 255)
+rslider bounds(360, 70, 60, 60), channel("lfoDepth"), range(0, 1, 0.5), text("LFO Depth"), trackerColour(0, 0, 255, 255)
+rslider bounds(420, 70, 60, 60), channel("lfoWaveform"), range(0, 3, 0, 1, 0.001), text("LFO Waveform"), trackerColour(0, 0, 255, 255)
 
 plant("NoiseAmount") {
-    groupbox bounds(315, 90, 220, 40), text("Noise Amount"), colour(200, 200, 200)
-    hslider bounds(325, 110, 200, 20), channel("noiseAmountSlider"), range(0, 1, 0.5), text("Breathiness") trackerColour(0, 0, 255, 255)
+    groupbox bounds(540, 90, 220, 40), text("Noise Amount"), colour(200, 200, 200)
+    hslider bounds(550, 110, 200, 20), channel("noiseAmountSlider"), range(0, 1, 0.5), text("Breathiness") trackerColour(0, 0, 255, 255)
 }
 
 
@@ -78,7 +81,6 @@ keyboard bounds(5, 565, 710, 80)
 ksmps = 32
 nchnls = 2
 0dbfs = 1
-sr = 44100
 
 instr UpdateGUI
     kToggleInstrument chnget "toggleInstrument"
@@ -120,15 +122,33 @@ endin
 
 
 instr LoopSound
+   
+    aEnv madsr 1, 1, 1, 1
     
     kTune chnget "tune"
     kFineTune chnget "fineTune"
+    
+    kLFOFreq chnget "lfoFrequency"
+    kLFODepth chnget "lfoDepth"
+    kLFOWaveform chnget "lfoWaveform"
 
-    aEnv madsr 1, 1, 1, 1
+    kLFO phasor kLFOFreq ; Generate ramp wave ranging from 0 to 
     
-    kTuneFreq = 440 * cent(pow(2, kTune/12 + kFineTune/100))
+    if kLFOWaveform == 0 then
+        kLFO oscili kLFODepth, kLFOFreq ; sine waveform
+    elseif kLFOWaveform == 1 then
+        kLFO oscili kLFODepth, kLFOFreq, 10
+    elseif kLFOWaveform == 2 then
+        kLFO = (kLFO > 0.5) ? kLFODepth : -kLFODepth ; square waveform
+    elseif kLFOWaveform == 3 then
+        kLFO = (kLFO * 2 - 1) * kLFODepth ; sawtooth waveform
+    endif
+
     
-    aLoopSig vco2 1, kTuneFreq 
+    kTuneFreq = 440 * pow(2, (kTune + kLFO)/12 + kFineTune/100)
+
+    aLoopSig vco2 1, kTuneFreq
+
     aLoopSig *= aEnv
 
     ; Process the signal
@@ -140,7 +160,7 @@ instr LoopSound
     kBW2 chnget "kBW2"
     kBW3 chnget "kBW3"
     kVol chnget "masterVolume"
-    
+   
     ; Resonant filters to process the drone based on formant frequencies and bandwidths
     a1 reson aLoopSig, kFreq1, kBW1
     a2 reson aLoopSig, kFreq2, kBW2
@@ -177,7 +197,7 @@ instr FormantSynth
 
     kEnv madsr chnget("envAttack"), chnget("envDecay"), chnget("envSustain"), chnget("envRelease")
     kFilterEnv madsr chnget("filtAttack"), chnget("filtDecay"), chnget("filtSustain"), chnget("filtRelease")
-
+    
     kFreq1 chnget "kFreq1"
     kFreq2 chnget "kFreq2"
     kFreq3 chnget "kFreq3"
@@ -247,10 +267,12 @@ endin
 </CsInstruments>
 <CsScore>
 f0 z
+f 10 0 4096 10 1
 i"UpdateGUI" 0 z
 i"MIDI_Listener" 0 z
 i"UpdateDisplay" 0 z
 i"UpdateFormantsFromXY" 0 z
+
 </CsScore>
 
 </CsoundSynthesizer>
