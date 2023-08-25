@@ -1,5 +1,5 @@
 <Cabbage>
-form caption("Formant Synth"), size(765, 650), guiMode("queue"), colour(129, 129, 129), pluginId("talk")
+form caption("Formant Synth"), size(765, 650), colour(129, 129, 129), pluginId("talk")
 
 combobox bounds(500, 10, 210, 25), channel("presetComboBox"), items("Default")
 button bounds(500, 45, 100, 25), channel("saveNewPresetButton"), text("Save as New Preset")
@@ -9,14 +9,14 @@ label bounds(10, 10, 200, 20), text("Formant Synthesizer"), fontColour(255, 255,
 
 button bounds(540, 335, 150, 25), channel("toggleEnvelope"), text("Envelope: OFF"), latched(1)
 
-button bounds(90, 80, 90, 50), channel("toggleInstrument"), text("Loop: OFF"), latched(1)  ; x-axis size decreased to 90 and y-axis increased to 30; moved up by 5
+button bounds(90, 80, 90, 50), channel("toggleInstrument"), identChannel("toggleInstrumentID"), text("Loop: OFF"), latched(1) 
 rslider bounds(180, 70, 60, 60), channel("tune"), range(-24, 24, 0), text("Tune"), trackerColour(0, 0, 255, 255)
-rslider bounds(240, 70, 60, 60), channel("fineTune"), range(-1, 1, 0), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  ; moved left by 15 and up by 5
+rslider bounds(240, 70, 60, 60), channel("fineTune"), range(-1, 1, 0), text("Fine-Tune"), trackerColour(0, 0, 255, 255)  
 rslider bounds(300, 70, 60, 60), channel("lfoFrequency"), range(0.1, 10, 1), text("LFO Frequency"), trackerColour(0, 0, 255, 255)
 rslider bounds(360, 70, 60, 60), channel("lfoDepth"), range(0, 1, 0.5), text("LFO Depth"), trackerColour(0, 0, 255, 255)
 rslider bounds(420, 70, 60, 60), channel("lfoWaveform"), range(0, 3, 0, 1, 0.001), text("LFO Waveform"), trackerColour(0, 0, 255, 255)
 
-rslider bounds(480, 70, 60, 60), channel("emotion"), range(0, 1, 0.5), text("Emotion"), trackerColour(0, 0, 255, 255)
+rslider bounds(480, 70, 60, 60), channel("emotion"), range(0, 1, 0), text("Emotion"), trackerColour(0, 0, 255, 255)
 
 plant("NoiseAmount") {
     groupbox bounds(540, 90, 220, 40), text("Noise Amount"), colour(200, 200, 200)
@@ -27,7 +27,7 @@ combobox bounds(10, 35, 210, 25), channel("voiceTypeComboBox"), items("Soprano: 
 
 
 plant("WaveformDisplay") {
-    groupbox bounds(90, 135, 220, 220), text("Waveform Display"), colour(200, 200, 200)  ; increased height slightly to accommodate combobox
+    groupbox bounds(90, 135, 220, 220), text("Waveform Display"), colour(200, 200, 200) 
     signaldisplay bounds(100, 185, 200, 160), colour("green") displayType("waveform"), backgroundColour(0, 0, 0), zoom(-1), signalVariable("displaySignal"), channel("display")
     combobox bounds(100, 160, 200, 20), channel("displayCombo"), items("Waveform", "Spectroscope", "Spectrogram", "Lissajous")
 }
@@ -39,6 +39,8 @@ plant("XYPad") {
     xypad bounds(325, 190, 200, 160), channel("xCoordinate", "yCoordinate")
 }
 
+hslider bounds(325, 360, 210, 25), channel("autoSpeed"), range(-1, 1, 0), text("AutoSpeed") trackerColour(0, 0, 255, 255)
+
 
 plant("Formants") {
     groupbox bounds(90, 365, 220, 190), text("Formants"), colour(200, 200, 200)
@@ -48,10 +50,11 @@ plant("Formants") {
 }
 
 plant("Bandwidth") {
-    groupbox bounds(315, 370, 220, 175), text("Bandwidth"), colour(200, 200, 200)
-    hslider bounds(325, 390, 210, 25), channel("kBW1"), range(0.001, 500, 60), text("BW1") trackerColour(0, 0, 255, 255)
-    hslider bounds(325, 420, 210, 25), channel("kBW2"), range(0.001, 500, 90), text("BW2") trackerColour(0, 0, 255, 255)
-    hslider bounds(325, 450, 210, 25), channel("kBW3"), range(0.001, 500, 200), text("BW3") trackerColour(0, 0, 255, 255)
+    ; Bounds updated: position moved down and made smaller on the Y-axis
+    groupbox bounds(315, 390, 220, 135), text("Bandwidth"), colour(200, 200, 200)
+    hslider bounds(325, 410, 210, 25), channel("kBW1"), range(0.001, 500, 60), text("BW1") trackerColour(0, 0, 255, 255)
+    hslider bounds(325, 440, 210, 25), channel("kBW2"), range(0.001, 500, 90), text("BW2") trackerColour(0, 0, 255, 255)
+    hslider bounds(325, 470, 210, 25), channel("kBW3"), range(0.001, 500, 200), text("BW3") trackerColour(0, 0, 255, 255)
 }
 
 
@@ -91,40 +94,52 @@ nchnls = 2
 0dbfs = 1
 
 instr UpdateGUI
+    ; Handling toggleInstrument
     kToggleInstrument chnget "toggleInstrument"
     kTrigInstrument changed kToggleInstrument 
 
     if kTrigInstrument == 1 then
         if kToggleInstrument == 1 then
-            cabbageSet "toggleInstrument", "text", "Drone: ON"
+            chnset "text(\"Drone: ON\")", "toggleInstrumentID"
             event "i", "LoopSound", 0, -1 ; Start the LoopSound
         else
-            cabbageSet "toggleInstrument", "text", "Drone: OFF"
+            chnset "text(\"Drone: OFF\")", "toggleInstrumentID"
             turnoff2 "LoopSound", 0, 0.01 ; Stop the LoopSound with a short fade-out time
         endif
     endif
 
+    ; Handling toggleEnvelope
     kToggleEnvelope chnget "toggleEnvelope"
     kTrigEnvelope changed kToggleEnvelope
 
     if kTrigEnvelope == 1 then
         if kToggleEnvelope == 1 then
-            cabbageSet "toggleEnvelope", "text", "Envelope: ON"
+            chnset "text(\"Envelope: ON\")", "toggleEnvelopeID"
         else
-            cabbageSet "toggleEnvelope", "text", "Envelope: OFF"
+            chnset "text(\"Envelope: OFF\")", "toggleEnvelopeID"
         endif
     endif
+    
+    ; Handling emotion-related updates
+    kEmotionPrev init 0
+    kEmotionCurr chnget "emotion"
+    if changed(kEmotionCurr) == 1 && kEmotionCurr != kEmotionPrev then
+        kLFOFreqUpdated chnget "lfoFrequencyUpdated"
+        kLFODepthUpdated chnget "lfoDepthUpdated"
+        chnset kLFOFreqUpdated, "lfoFrequency"
+        chnset kLFODepthUpdated, "lfoDepth"
+    endif
+    kEmotionPrev = kEmotionCurr
 endin
 
 instr UpdateDisplay
   
-    kDisplayType, kTrig cabbageGetValue "displayCombo"
+kDisplayType, kTrig cabbageGetValue "displayCombo"
     STypes[] init 4
     STypes[0] = "waveform"
     STypes[1] = "spectroscope"
     STypes[2] = "spectrogram"
     STypes[3] = "lissajous"
-    cabbageSet kTrig, "display", "displayType", STypes[kDisplayType-1]
     
 endin
 
@@ -133,16 +148,16 @@ instr MIDI_Listener
     ; Check for MIDI note events
     kStatus, kChan, kData1, kData2 midiin
 
-    ; If a MIDI note-on event (status 144) is detected, trigger FormantSynth
     if (kStatus == 144) then
-        iDur = 0.5 ; or whatever duration you want, though it will be overridden by ADSR
+        iDur = 0.5 
         event "i", "FormantSynth", 0, iDur, kData1, kData2
     endif
     
 endin
 
 instr FormantSynth
-    ; Automatically capture the MIDI note and velocity from Cabbage's virtual keyboard
+
+    ; Capture the MIDI note
     kMidiFreq cpsmidinn p4
     kVel      ampdbfs p5
 
@@ -157,15 +172,15 @@ instr FormantSynth
     kBW3 chnget "kBW3"
     kVol chnget "masterVolume"
     
-    kToggleEnv chnget "toggleEnvelope" ; get the state of the toggleEnvelope button
+    kToggleEnv chnget "toggleEnvelope" 
 
     ; Depending on toggleEnvelope, either apply the envelope to the frequency or bypass it
     kMidiFreq = (kToggleEnv == 1 ? kMidiFreq * kFilterEnv : kMidiFreq)
     
-    ; Generate the MIDI signal
+    ; Generate MIDI signal
     aMidiSig vco2 kVel, kMidiFreq
     
-    ; Process the MIDI signal
+    ; Process MIDI signal
     a1 reson aMidiSig, kFreq1, kBW1
     a2 reson aMidiSig, kFreq2, kBW2
     a3 reson aMidiSig, kFreq3, kBW3
@@ -174,8 +189,8 @@ instr FormantSynth
     a2 *= 1/peak(a2)  ; normalize the amplitude of a2 to 1
     a3 *= 1/peak(a3)  ; normalize the amplitude of a3 to 1
 
-    aMix = (a1 + a2 + a3) * kVol / 3 * kEnv  ; scale down the combined formants 
-    aMixL, aMixR pan2 aMix, 0.5  ; panning center
+    aMix = (a1 + a2 + a3) * kVol / 3 * kEnv  ; scale down formants 
+    aMixL, aMixR pan2 aMix, 0.5  ; pan center
     
     display aMix, .1, 1
     dispfft aMix, .1, 1024
@@ -186,7 +201,7 @@ endin
 
 instr LoopSound
     aEnv madsr 1, 1, 1, 1
-    
+
     ; === Tuning Control ===
     kTune chnget "tune"
     kFineTune chnget "fineTune"
@@ -195,28 +210,30 @@ instr LoopSound
     ; === Emotion and LFO Control ===
     kEmotion chnget "emotion" ; Retrieve Emotion control value
     
-    ; Add randomness to LFO based on Emotion
-    kRandFreqRate = 0.1 + (kEmotion * 2) ; Starts from 0.1 Hz and can go up to 2.1 Hz as kEmotion reaches its maximum
-    kRandDepthRate = 0.1 + (kEmotion * 2) ; Similarly for depth rate
+    ; Add tempered randomness to LFO based on Emotion
+    kRandFreqRate = 0.05 + (kEmotion) 
+    kRandDepthRate = 0.05 + (kEmotion)
 
-    kRandFreq randi 10 * kEmotion, kRandFreqRate ; Random fluctuations up to 10 Hz based on Emotion
-    kRandDepth randi 0.5 * kEmotion, kRandDepthRate ; Random depth fluctuations up to 0.5 based on Emotion
+    kRandFreq randi 0.1 * kEmotion, kRandFreqRate
+    kRandDepth randi 0.1 * kEmotion, kRandDepthRate 
+    
+    kRandFreq = limit(kRandFreq, 0, 10) 
+    kRandDepth = limit(kRandDepth, 0, 0.5)
 
     ; Get original LFO values
     kOrigLFOFreq chnget "lfoFrequency"
     kOrigLFODepth chnget "lfoDepth"
     
-    ; Add randomness to original LFO values
+    ; Add randomness 
     kLFOFreq = kOrigLFOFreq + kRandFreq
     kLFODepth = kOrigLFODepth + kRandDepth
 
     kLFOWaveform chnget "lfoWaveform"
 
-    ; Reflect randomized values back to sliders
     chnset kLFOFreq, "lfoFrequency"
     chnset kLFODepth, "lfoDepth"
-
-    ; Generate LFO waveform based on the selected waveform
+    
+    ; Generate selected LFO waveform 
     if kLFOWaveform == 0 then
         kLFO oscili kLFODepth, kLFOFreq
     elseif kLFOWaveform == 1 then
@@ -249,7 +266,7 @@ instr LoopSound
     kBW2 = kBW2 * pow(2, kTune/12)
     kBW3 = kBW3 * pow(2, kTune/12)
 
-    ; Process audio signal with resonant filters
+    ; Resonant filters
     a1 resonz aLoopSig, kFreq1, kBW1
     a2 resonz aLoopSig, kFreq2, kBW2
     a3 resonz aLoopSig, kFreq3, kBW3
@@ -267,78 +284,62 @@ instr LoopSound
     aBreath2 reson aBreathNoise, kFreq2, kBW2
     aBreath3 reson aBreathNoise, kFreq3, kBW3
 
-    ; Normalize each breath formant
-    aBreath1 *= 1/peak(aBreath1)
-    aBreath2 *= 1/peak(aBreath2)
-    aBreath3 *= 1/peak(aBreath3)
+    ; Normalize each breath formant filter
+    kNormBreath1 = 0.33
+    kNormBreath2 = 0.33
+    kNormBreath3 = 0.33
 
-    ; Combine the breath formants
-    aBreathMix = (aBreath1 + aBreath2 + aBreath3) / 3 
+    aBreath = (aBreath1 * kNormBreath1 + aBreath2 * kNormBreath2 + aBreath3 * kNormBreath3)
 
-    ; === Signal Combination and Output ===
-    kVol chnget "masterVolume"
-    aMix = (a1 + a2 + a3) * kVol / 3
-    aMixL, aMixR pan2 aMix, 0.5
-    aMixL = aMixL + aBreathMix
-    aMixR = aMixR + aBreathMix
-    aMixL = butterhp(aMixL, 100)
-    aMixR = butterhp(aMixR, 100)
-
-    outs aMixL, aMixR ; Output stereo signal
-
+    ; === Summing the Signals ===
+    aMix = a1 + a2 + a3 + aBreath
+    aMix = aMix * 0.25
+    outs aMix, aMix
 endin
 
 
 instr Chorus
 
     ; Parameters declaration with default values
-    idepth  init 10     ; Depth of modulation. A subtle modulation depth for natural sound.
-    irate   init 1       ; Modulation rate. 0.5 Hz is a fairly standard rate for chorus.
-    iwave   init 1         ; Waveform for the LFO. Assuming 1 represents a sine wave.
-    iphase  init 0         ; Initial phase for the LFO. Start at phase 0 for first LFO.
-    ideloff init 30        ; Base delay offset in ms. A typical range for chorus can be 10-30ms.
-    imix    init 1      ; Mix level. 30% of the modulated signal mixed with original.
-    kamp    init 0.7       ; Amplitude adjustment. Reduce by 30% to avoid clipping when signals are combined.
+    idepth  init 10     
+    irate   init 1       
+    iwave   init 1        
+    iphase  init 0        
+    ideloff init 30        
+    imix    init 1     
+    kamp    init 0.7      
 
-    ; Input signal
     aInL chnget "ChorusInL"
     aInR chnget "ChorusInR"
 
-    ; LFOs for modulation
     aLfo1 oscil idepth, irate, iwave, iphase
-    aLfo2 oscil idepth, irate, iwave, iphase + 0.25 ; One quarter cycle out of phase
+    aLfo2 oscil idepth, irate, iwave, iphase + 0.25 ; quarter cycle out of phase
 
-    ; Delay modulated by LFO for Left channel
     aTempL delayr idepth + ideloff
     aChorusL deltapi aLfo1 + ideloff
     delayw aInL
 
-    ; Delay modulated by LFO for Right channel
     aTempR delayr idepth + ideloff
     aChorusR deltapi aLfo2 + ideloff
     delayw aInR
 
-    ; Combine original and delayed signals
     aOutL = (aInL + aChorusL * imix) * 0.5 * kamp
     aOutR = (aInR + aChorusR * imix) * 0.5 * kamp
 
-    ; Output stereo signal
     outs aOutL, aOutR
 
 endin
 
-instr UpdateFormantsFromXY
+instr XYPad
 
-    kx chnget "xCoordinate" 
-    ky chnget "yCoordinate" 
-
+    kx chnget "xCoordinate"
+    ky chnget "yCoordinate"
+    
     kTune chnget "tune"
     kFineTune chnget "fineTune"
+    kNormTune = (kTune + 24) / 48
 
-    ; Normalize kTune to range between 0 to 1
-    kNormTune = (kTune + 24) / 48 
-
-    ; Define the formants for Mid vowels
+    ; Define formant values for MidRange vowels
     iF1_i_Mid = 270
     iF2_i_Mid = 2300
     iF3_i_Mid = 3000
@@ -359,13 +360,12 @@ instr UpdateFormantsFromXY
     iF2_a_Mid = 1090
     iF3_a_Mid = 2440
 
-    ; Interpolate formants based on kNormTune
-    ; Define central, or "Mid", values
+    ; Calculate the mean frequency for all vowels to derive the central, or "Mid", formant frequencies
     iF1_Mid = (iF1_i_Mid + iF1_u_Mid + iF1_e_Mid + iF1_o_Mid + iF1_a_Mid) / 5
     iF2_Mid = (iF2_i_Mid + iF2_u_Mid + iF2_e_Mid + iF2_o_Mid + iF2_a_Mid) / 5
     iF3_Mid = (iF3_i_Mid + iF3_u_Mid + iF3_e_Mid + iF3_o_Mid + iF3_a_Mid) / 5
 
-    ; Interpolate formants based on kNormTune
+    ; Adjust formants based on normalized tuning. This interpolates between the Mid value and the specific vowel formant
     kF1_i = iF1_i_Mid + (iF1_Mid - iF1_i_Mid) * kNormTune
     kF2_i = iF2_i_Mid + (iF2_Mid - iF2_i_Mid) * kNormTune
     kF3_i = iF3_i_Mid + (iF3_Mid - iF3_i_Mid) * kNormTune
@@ -382,7 +382,7 @@ instr UpdateFormantsFromXY
     kF2_o = iF2_o_Mid + (iF2_Mid - iF2_o_Mid) * kNormTune
     kF3_o = iF3_o_Mid + (iF3_Mid - iF3_o_Mid) * kNormTune
 
-    ; Interpolations
+    ; 2D Interpolation: Interpolate formants based on ky (Y coordinate) between 'i' and 'u' and between 'e' and 'o'
     kF1_i_u = kF1_i + (kF1_u - kF1_i) * ky
     kF2_i_u = kF2_i + (kF2_u - kF2_i) * ky
     kF3_i_u = kF3_i + (kF3_u - kF3_i) * ky
@@ -391,38 +391,38 @@ instr UpdateFormantsFromXY
     kF2_e_o = kF2_e + (kF2_o - kF2_e) * ky
     kF3_e_o = kF3_e + (kF3_o - kF3_e) * ky
 
+    ; Interpolate between the two previously interpolated sets based on kx (X coordinate)
     kF1 = kF1_i_u + (kF1_e_o - kF1_i_u) * kx + (iF1_a_Mid - kF1_i_u) * (1-abs(2*kx-1)) * (1-abs(2*ky-1))
     kF2 = kF2_i_u + (kF2_e_o - kF2_i_u) * kx + (iF2_a_Mid - kF2_i_u) * (1-abs(2*kx-1)) * (1-abs(2*ky-1))
     kF3 = kF3_i_u + (kF3_e_o - kF3_i_u) * kx + (iF3_a_Mid - kF3_i_u) * (1-abs(2*kx-1)) * (1-abs(2*ky-1))
 
-    ; Adjust the formants based on tuning
     kF1 = kF1 * pow(2, kTune/12 + kFineTune/100)
     kF2 = kF2 * pow(2, kTune/12 + kFineTune/100)
     kF3 = kF3 * pow(2, kTune/12 + kFineTune/100)
 
-    ; Set the formant sliders
-    cabbageSetValue "kFreq1", kF1
-    cabbageSetValue "kFreq2", kF2
-    cabbageSetValue "kFreq3", kF3
-    
-    kActivate chnget "autoVowel" ; Get the status of the automation button
+    chnset kF1, "kFreq1"
+    chnset kF2, "kFreq2"
+    chnset kF3, "kFreq3"
+
+    ; Get the status of the automation toggle and speed
+    kActivate chnget "autoVowel"
+    kAutoSpeed chnget "autoSpeed"
 
     if kActivate == 1 then
-        kTheta phasor 0.1 ; Generating a ramp at 0.1 Hz. This will determine the speed of the circle.
-        kx = 0.5 + 0.5*cos(kTheta*2*$M_PI) ; Generate X value from 0 to 1 in a circular path
-        ky = 0.5 + 0.5*sin(kTheta*2*$M_PI) ; Generate Y value from 0 to 1 in a circular path
-    
+        ; Circular motion for X and Y coordinates 
+        kTheta phasor kAutoSpeed ; use the autoSpeed value as the phasor's rate
+        kx = 0.5 + 0.5*cos(kTheta*2*$M_PI)
+        ky = 0.5 + 0.5*sin(kTheta*2*$M_PI)
+
+        ; Update X and Y coordinate channels with newly computed values
         chnset kx, "xCoordinate"
         chnset ky, "yCoordinate"
     else
-        kx chnget "xCoordinate" 
+        ; If not in automation mode, simply retrieve the manually set X and Y coordinates
+        kx chnget "xCoordinate"
         ky chnget "yCoordinate"
     endif
-
-
-
 endin
-
 
 
 </CsInstruments>
@@ -434,7 +434,7 @@ i"UpdateGUI" 0 z
 i"Chorus" 0 z 0.8 
 i"MIDI_Listener" 0 z
 i"UpdateDisplay" 0 z
-i"UpdateFormantsFromXY" 0 z
+i"XYPad" 0 z
 </CsScore>
 
 </CsoundSynthesizer>
